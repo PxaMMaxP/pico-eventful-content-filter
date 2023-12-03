@@ -1,8 +1,4 @@
 <?php
-declare(strict_types=1);
-
-use Twig\Environment as TwigEnvironment;
-use Twig\Filter as TwigFilter;
 
 class EventfulContentFilter extends AbstractPicoPlugin
 {
@@ -11,7 +7,7 @@ class EventfulContentFilter extends AbstractPicoPlugin
      *
      * @var int
      */
-    public const API_VERSION = 4;
+    public const API_VERSION = 2;
 
     /**
      * Triggered when Pico registers the twig template engine
@@ -20,13 +16,13 @@ class EventfulContentFilter extends AbstractPicoPlugin
      *
      * @param TwigEnvironment &$twig Twig instance
      */
-    public function onTwigRegistered(TwigEnvironment &$twig): void
+    public function onTwigRegistered()
     {
-        $twig->addFilter(new TwigFilter(
-            'eventfulContentFilter',
-            array($this, 'eventfulContentFilter'),
-            [ 'is_safe' => [ 'html' ] ]
-        ));
+        // Zugriff auf Twig-Environment
+		$twig = $this->getPico()->getTwig();
+
+		// Neuen Filter hinzufügen
+		$twig->addFilter(new Twig\TwigFilter('eventfulContentFilter', array($this, 'eventfulContentFilter')));
     }
 
     /**
@@ -40,15 +36,15 @@ class EventfulContentFilter extends AbstractPicoPlugin
     {
         $pico = $this->getPico();
         $pages = &$pico->getPages();
-
         if (isset($pages[$pageId])) {
-            $pageData = &$pages[$pageId];
+            $pageData = $pages[$pageId];
             if (!isset($pageData['content'])) {
-                $markdown = $pico->prepareFileContent($pageData['raw_content'], $pageData['meta'], $page);
-                $pico->triggerEvent('onContentPrepared', [ &$markdown ]);
+                $markdown = $pico->prepareFileContent($pageData['raw_content'], $pageData['meta']);
+                $pico->triggerEvent('onContentPrepared', array(&$markdown));
                 $pageData['content'] = $pico->parseFileContent($markdown);
-                $pico->triggerEvent('onContentParsed', [ &$pageData['content'] ]);
+                $pico->triggerEvent('onContentParsed', array(&$pageData['content']));
             }
+
             return $pageData['content'];
         }
         return null;
