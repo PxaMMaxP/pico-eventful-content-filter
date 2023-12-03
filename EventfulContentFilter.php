@@ -19,10 +19,10 @@ class EventfulContentFilter extends AbstractPicoPlugin
     public function onTwigRegistered()
     {
         // Zugriff auf Twig-Environment
-		$twig = $this->getPico()->getTwig();
+        $twig = $this->getPico()->getTwig();
 
-		// Neuen Filter hinzufügen
-		$twig->addFilter(new Twig\TwigFilter('eventfulContentFilter', array($this, 'eventfulContentFilter')));
+        // Neuen Filter hinzufügen
+        $twig->addFilter(new Twig\TwigFilter('eventfulContentFilter', array($this, 'eventfulContentFilter')));
     }
 
     /**
