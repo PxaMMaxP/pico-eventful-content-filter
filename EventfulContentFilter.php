@@ -44,7 +44,8 @@ class EventfulContentFilter extends AbstractPicoPlugin
                 $pageData['content'] = $pico->parseFileContent($markdown);
                 $pico->triggerEvent('onContentParsed', array(&$pageData['content']));
             }
-            $pageData['content'] = $this->individualizeFootnotes($pageData['content'], 'u' . str_replace("/", "", $pageId));
+            $uniqueNumber = $this->generatePseudoUniqueNumber($pageId);
+            $pageData['content'] = $this->individualizeFootnotes($pageData['content'], 'u' . $uniqueNumber);
             return $pageData['content'];
         }
         return null;
@@ -54,7 +55,9 @@ class EventfulContentFilter extends AbstractPicoPlugin
     {
         // Create a DOMDocument and load the HTML code
         $dom = new DOMDocument();
-        @$dom->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'), LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        $encodedHtml = mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8');
+        $loadHtmlOptions = LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD;
+        @$dom->loadHTML($encodedHtml, $loadHtmlOptions);
 
         // Individualize the sup elements and their children
         $supElements = $dom->getElementsByTagName('sup');
@@ -98,4 +101,10 @@ class EventfulContentFilter extends AbstractPicoPlugin
         return $dom->saveHTML();
     }
 
+    private function generatePseudoUniqueNumber($string)
+    {
+        $hash = md5($string);
+        $number = substr($hash, 0, 6);
+        return hexdec($number) % 1000000;
+    }
 }
